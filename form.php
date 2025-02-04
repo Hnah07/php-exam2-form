@@ -9,7 +9,7 @@ if (@$_POST['submit']) {
 
     $naam = "";
     $email = "";
-    $datum = "";
+    $datum = null;
 
     if (!isset($_POST['naam'])) {
         $errors[] = "Gelieve je naam en voornaam in te vullen";
@@ -32,13 +32,26 @@ if (@$_POST['submit']) {
         }
     }
 
+    if (!isset($_POST['datum'])) {
+        $errors[] = "Gelieve een datum te kiezen.";
+    } else {
+        $datum = $_POST['datum'];
+        if (datumPicked($datum) == true) {
+            $errors[] = "Datum is niet vrij. Gelieve een andere datum te kiezen.";
+        }
+    }
+
     if (count($errors) == 0) { // er werden geen fouten geregistreerd tijdens validatie
         $return = insertAfspraak($naam, $email, $datum);
-        header("Location: index.php?message=Afspraak wordt aangevraagd...");
+        header("Location: form.php?message=Afspraak wordt aangevraagd...");
         exit;
     }
 }
-$today = date('d-m-Y');
+// $today = date('l d-m-Y');
+setlocale(LC_ALL, 'nl_NL.UTF-8');
+print '<pre>';
+print_r($_POST);
+print '</pre>';
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -67,19 +80,21 @@ $today = date('d-m-Y');
                 </div>
             <?php endif; ?>
             <label for="naam">Naam + Voornaam:</label>
-            <input type="text" id="naam" name="naam" placeholder="Verboven Rudy">
+            <input type="text" id="naam" name="naam" placeholder="Verboven Rudy" value="<?= @$naam ?>">
             <label for="email">E-mailadres:</label>
-            <input id="email" name="email" placeholder="Jouw e-mailadres...">
+            <input id="email" name="email" placeholder="Jouw e-mailadres..." value="<?= @$email ?>">
             <label for="datum">Datum afspraak:</label>
-            <input id="datum" name="datum" type="date" />
-            <select id="datum">
-                <option value="test"><?= date($today, strtotime(' -1 day')); ?></option>
-                <option value="test"><?= date($today, strtotime(' +1 day')); ?></option>
-                <option value="datum1">donderdag 6 februari 2025</option>
-                <option value="datum2">vrijdag 7 februari 2025</option>
-                <option value="datum3">maandag 10 februari 2025</option>
-                <option value="datum4">dinsdag 11 februari 2025</option>
-                <option value="datum5">woensdag 12 februari 2025</option>
+            <!--<input id="datum" name="datum" type="date" /> -->
+            <select id="datum" name="datum">
+                <?php
+                $vandaag = time();
+                for ($i = 2; $i <= 100; $i++) {
+                    $datum = date('l d F Y', $vandaag + (86400 * $i));
+                ?>
+                    <option value="<?= $datum; ?>"><?= $datum; ?></option>
+                <?php
+                }
+                ?>
             </select>
             <button type="submit" value="submit" name="submit">Indienen</button>
         </form>

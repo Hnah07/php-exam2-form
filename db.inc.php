@@ -32,3 +32,11 @@ function insertAfspraak(String $naam, String $email, String $datum): bool|int
     ]);
     return $db->lastInsertId();
 }
+
+function datumPicked(String $datum): bool
+{
+    $sql = "SELECT datum FROM afspraken WHERE datum = :datum";
+    $stmt = connectToDB()->prepare($sql);
+    $stmt->execute([':datum' => $datum]);
+    return $stmt->fetch(PDO::FETCH_COLUMN);
+}
