@@ -3,6 +3,8 @@ require('db.inc.php');
 
 $errors = [];
 $submitted = false;
+$weetje = "";
+
 
 if (@$_POST['submit']) {
     $submitted = true;
@@ -10,6 +12,7 @@ if (@$_POST['submit']) {
     $naam = "";
     $email = "";
     $datum = null;
+    $weetje = "";
 
     if (!isset($_POST['naam'])) {
         $errors[] = "Gelieve je naam en voornaam in te vullen";
@@ -19,8 +22,8 @@ if (@$_POST['submit']) {
         if (strlen($naam) < 1) {
             $errors[] = "Naam en voornaam is verplicht.";
         }
-        if (preg_match("/[^a-zA-Z]+(?:[\s.]+[a-zA-Z]+)*$/", $naam)) {
-            $errors[] = "Je volledige naam mag geen speciale karakters bevatten en moet bestaan uit minstens twee woorden.";
+        if (preg_match("/[^a-zA-Z\s-]+/", $naam)) {
+            $errors[] = "Je naam mag geen speciale karakters bevatten, en moet (een) spatie(s) bevatten.";
         }
     }
     if (!isset($_POST['email'])) {
@@ -36,22 +39,26 @@ if (@$_POST['submit']) {
         $errors[] = "Gelieve een datum te kiezen.";
     } else {
         $datum = $_POST['datum'];
+        $old_date_timestamp = strtotime($datum);
+        $month = date('m', $old_date_timestamp);
+        $day = date('d', $old_date_timestamp);
+        $weetje = getWeetje('http://numbersapi.com/' . $month . '/' . $day . '/date');
         if (datumPicked($datum) == true) {
             $errors[] = "Datum is niet vrij. Gelieve een andere datum te kiezen.";
         }
     }
 
-    if (count($errors) == 0) { // er werden geen fouten geregistreerd tijdens validatie
+    if (count($errors) == 0) {
         $return = insertAfspraak($naam, $email, $datum);
-        header("Location: form.php?message=Afspraak wordt aangevraagd...");
+        header('Location: form.php?message=Afspraak wordt verwerkt...');
         exit;
     }
 }
 // $today = date('l d-m-Y');
-setlocale(LC_ALL, 'nl_NL.UTF-8');
-print '<pre>';
-print_r($_POST);
-print '</pre>';
+// print '<pre>';
+// print_r($_POST);
+// print '</pre>';
+
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -79,6 +86,14 @@ print '</pre>';
                     </ul>
                 </div>
             <?php endif; ?>
+            <?php if (isset($_GET["message"])): // zit er een message in mijn GET array? 
+            ?>
+                <div class="p-3 text-success-emphasis bg-success-subtle border border-success-subtle rounded-3">
+                    <?= $_GET["message"]; ?>
+                </div>
+                <p><?= $weetje; ?></p>
+            <?php endif; ?>
+
             <label for="naam">Naam + Voornaam:</label>
             <input type="text" id="naam" name="naam" placeholder="Verboven Rudy" value="<?= @$naam ?>">
             <label for="email">E-mailadres:</label>
@@ -87,12 +102,22 @@ print '</pre>';
             <!--<input id="datum" name="datum" type="date" /> -->
             <select id="datum" name="datum">
                 <?php
+                //datum van $vandaag declareren
+                //forloop: twee dagen vanaf $vandaag (+2)
+                //tem 100dagen verder
+                //datum in date('l d F Y') format
+                //=datum van $vandaag+ dagen in seconden gebruiken!!
+                //w gebruiken voor dagnotatie, zondag is 0!
+                //dag mag dus niet 0 of 6 zijn
                 $vandaag = time();
                 for ($i = 2; $i <= 100; $i++) {
                     $datum = date('l d F Y', $vandaag + (86400 * $i));
+                    $dag = date('w', $vandaag + (86400 * $i));
+                    if ($dag != 0 && $dag != 6) {
                 ?>
-                    <option value="<?= $datum; ?>"><?= $datum; ?></option>
+                        <option value="<?= $datum; ?>"><?= $datum; ?></option>
                 <?php
+                    }
                 }
                 ?>
             </select>
