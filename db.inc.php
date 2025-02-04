@@ -19,3 +19,16 @@ function connectToDB()
     $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, FALSE);
     return $db;
 }
+
+function insertAfspraak(String $naam, String $email, String $datum): bool|int
+{
+    $db = connectToDB();
+    $sql = "INSERT INTO afspraken(naam, email, datum) VALUES (:naam, :email, :datum)";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([
+        ':naam' => $naam,
+        ':email' => $email,
+        ':datum' => $datum
+    ]);
+    return $db->lastInsertId();
+}

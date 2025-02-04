@@ -9,7 +9,7 @@ if (@$_POST['submit']) {
 
     $naam = "";
     $email = "";
-    $datum = null;
+    $datum = "";
 
     if (!isset($_POST['naam'])) {
         $errors[] = "Gelieve je naam en voornaam in te vullen";
@@ -30,6 +30,12 @@ if (@$_POST['submit']) {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = "E-mailadres klopt niet.";
         }
+    }
+
+    if (count($errors) == 0) { // er werden geen fouten geregistreerd tijdens validatie
+        $return = insertAfspraak($naam, $email, $datum);
+        header("Location: index.php?message=Afspraak wordt aangevraagd...");
+        exit;
     }
 }
 $today = date('d-m-Y');
